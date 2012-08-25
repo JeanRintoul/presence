@@ -11,6 +11,17 @@
 #define HRMI_I2C_ADDR      127
 #define HRMI_HR_ALG        1   // 1= average sample, 0 = raw sample
 
+#define RESTING(heartMode) (heartMode < 4)
+#define BRADYCARDIA(heartMode) (heartMode == 1)
+#define TACHYCARDIA(heartMode) (heartMode == 8)
+
+#define NONE 0
+#define AQUA (1 << 0)
+#define ORANGE (1 << 1)
+#define RED (1 << 2)
+
+#define WIRE(option, index) (option & (1 << index))
+
 const int ledPin = 13; // LED connected to digital pin 13 
 // Variables will change:
 int ledState = LOW;             // ledState used to set the LED
@@ -20,24 +31,44 @@ long previousMillis = 0;        // will store last time LED was updated
 long interval = 1000;           // interval at which to blink (milliseconds)
 float part1 = 0;
 
+// This holds the pin numbers for the various length
+const int WIRE_COUNT = 8;
+const int LENGTHS[WIRE_COUNT] = {10, 10, 20, 20, 20, 30, 30, 30};
+const int COLORS[WIRE_COUNT] = {AQUA, ORANGE, AQUA, ORANGE, RED, AQUA, ORANGE, RED};
+const int PINS[WIRE_COUNT] = {13, 12, 11, 10, 9, 8, 7, 6};
+
+// These are populate by the prepareOutputOptions, based on the settings above
+const int OPTION_COUNT = 2 ^ WIRE_COUNT;
+int colors_for[OPTION_COUNT] = {0};
+int length_for[OPTION_COUNT] = {0};
+
 void setup(){
   setupHeartMonitor(HRMI_HR_ALG);
   Serial.begin(9600);
   pinMode(ledPin,OUTPUT);
+  prepareOutputOptions();
 }
 
 void loop(){
-
   int heartRate = getHeartRate();
-  Serial.println(heartRate);
-  //delay(1000); //just here to slow down the checking to once a second
-  delay(20);
-  // This is the desired LED blink interval: 
-  interval = 60000/heartRate;
-  writeLEDfrequency(interval);
-  // Now, we need some LCD screen output code... 
-  // It can be updated, not that often... once a second?
+  //  Serial.println(heartRate);
+  displayHeartRate(heartRate);
+  delay(20); //just here to slow down the checking)
+}
 
+void prepareOutputOptions() {
+  for (int option = 0; option < OPTION_COUNT; option++) {
+    int optionLength = 0;
+    int optionColors = NONE;
+    for (int wireIndex = 0; wireIndex < WIRE_COUNT; wireIndex++) {
+      if (WIRE(option, wireIndex)) {
+        optionLength += LENGTHS[wireIndex];
+        optionColors &= COLORS[wireIndex];
+      }
+    }
+    colors_for[option] = optionColors;
+    length_for[option] = optionLength;
+  }
 }
 
 void writeLEDfrequency(long interval){
@@ -59,6 +90,70 @@ void setupHeartMonitor(int type){
   //setup the heartrate monitor
   Wire.begin();
   writeRegister(HRMI_I2C_ADDR, 0x53, type); // Configure the HRMI with the requested algorithm mode
+}
+
+void displayHeartRate(int heartRate) {
+  int displayMode = getDisplayMode(heartRate);
+  int allowedColors = getAllowedColors(displayMode);
+  int maxLength = getMaxLength(displayMode);
+  int minLength = getMinLength(displayMode);
+  int option = selectOption(minLength, maxLength, allowedColors);
+  activateLights(option);
+}
+
+int selectOption(int minLength, int maxLength, int allowedColors) {
+  while(true) {
+    int option = rand() % OPTION_COUNT;
+    if ((colors_for[option] | allowedColors) == allowedColors) {
+      int length = length_for[option];
+      if (length >= minLength && length <= maxLength) {
+        return option;
+      }
+    }
+  }
+}
+
+void activateLights(int option) {
+  for (int wireIndex = 0; wireIndex < WIRE_COUNT; wireIndex++) {
+    digitalWrite(PINS[wireIndex], WIRE(option, wireIndex) ? HIGH : LOW);
+  }
+}
+
+int getDisplayMode(int heartRate) {
+  if (heartRate < 60) {
+    return 1;
+  } else if (heartRate >= 120) {
+    return 8;
+  } else {
+    // 60-120 -> 2-7
+    return (heartRate / 10) - 4;
+  }
+}
+
+int getMinLength(int displayMode) {
+  if (RESTING(displayMode) || TACHYCARDIA(displayMode)) {
+    return 10;
+  } else {
+    // translyate 4-7 -> 10-40
+    return (displayMode - 3) * 10;
+  }
+}
+
+int getMaxLength(int displayMode) {
+  // displayMode is 1-8. Target length is 10-80 feet
+  return displayMode == 8 ? 80 : (displayMode * 10) + 10;
+}
+
+int getAllowedColors(int displayMode) {
+  if (BRADYCARDIA(displayMode)) {
+    return AQUA;
+  } else if (RESTING(displayMode)) {
+    return AQUA & ORANGE;
+  } else if ((displayMode < 6) || TACHYCARDIA(displayMode)) {
+    return AQUA & ORANGE & RED;
+  } else {
+    return ORANGE & RED;
+  }
 }
 
 int getHeartRate(){
