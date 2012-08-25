@@ -52,13 +52,6 @@ void setup(){
   prepareOutputOptions();
 }
 
-void loop(){
-  int heartRate = getHeartRate();
-  //  Serial.println(heartRate);
-  displayHeartRate(heartRate);
-  delay(20); //just here to slow down the checking)
-}
-
 void prepareOutputOptions() {
   for (int option = 0; option < OPTION_COUNT; option++) {
     int optionLength = 0;
@@ -83,6 +76,32 @@ void prepareOutputOptions() {
         markModeOption(mode, option);
       }
     }
+  }
+}
+
+int getMinLength(int displayMode) {
+  if (RESTING(displayMode) || TACHYCARDIA(displayMode)) {
+    return 10;
+  } else {
+    // translate 3-6 -> 10-40
+    return (displayMode - 2) * 10;
+  }
+}
+
+int getMaxLength(int displayMode) {
+  // displayMode is 0-7. Target length is 10-80 feet
+  return (displayMode * 10) + 10;
+}
+
+int getAllowedColors(int displayMode) {
+  if (BRADYCARDIA(displayMode)) {
+    return AQUA;
+  } else if (RESTING(displayMode)) {
+    return AQUA & ORANGE;
+  } else if ((displayMode < 5) || TACHYCARDIA(displayMode)) {
+    return AQUA & ORANGE & RED;
+  } else {
+    return ORANGE & RED;
   }
 }
 
@@ -121,6 +140,13 @@ void setupHeartMonitor(int type){
   writeRegister(HRMI_I2C_ADDR, 0x53, type); // Configure the HRMI with the requested algorithm mode
 }
 
+void loop(){
+  int heartRate = getHeartRate();
+  //  Serial.println(heartRate);
+  displayHeartRate(heartRate);
+  delay(20); //just here to slow down the checking)
+}
+
 void displayHeartRate(int heartRate) {
   int displayMode = getDisplayMode(heartRate);
   int option = selectOption(displayMode);
@@ -145,32 +171,6 @@ int getDisplayMode(int heartRate) {
   } else {
     // 60-120 -> 1-6
     return (heartRate / 10) - 5;
-  }
-}
-
-int getMinLength(int displayMode) {
-  if (RESTING(displayMode) || TACHYCARDIA(displayMode)) {
-    return 10;
-  } else {
-    // translate 3-6 -> 10-40
-    return (displayMode - 2) * 10;
-  }
-}
-
-int getMaxLength(int displayMode) {
-  // displayMode is 0-7. Target length is 10-80 feet
-  return (displayMode * 10) + 10;
-}
-
-int getAllowedColors(int displayMode) {
-  if (BRADYCARDIA(displayMode)) {
-    return AQUA;
-  } else if (RESTING(displayMode)) {
-    return AQUA & ORANGE;
-  } else if ((displayMode < 5) || TACHYCARDIA(displayMode)) {
-    return AQUA & ORANGE & RED;
-  } else {
-    return ORANGE & RED;
   }
 }
 
