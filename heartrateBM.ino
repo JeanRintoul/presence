@@ -144,7 +144,8 @@ void loop(){
   int heartRate = getHeartRate();
   //  Serial.println(heartRate);
   displayHeartRate(heartRate);
-  delay(20); //just here to slow down the checking)
+  int interval = 60000/heartRate;
+  delay(interval); // change the output at roughly the heart rate of the wearer
 }
 
 void displayHeartRate(int heartRate) {
