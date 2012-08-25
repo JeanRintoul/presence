@@ -11,9 +11,9 @@
 #define HRMI_I2C_ADDR      127
 #define HRMI_HR_ALG        1   // 1= average sample, 0 = raw sample
 
-#define RESTING(heartMode) (heartMode < 4)
-#define BRADYCARDIA(heartMode) (heartMode == 1)
-#define TACHYCARDIA(heartMode) (heartMode == 8)
+#define RESTING(heartMode) (heartMode < 3)
+#define BRADYCARDIA(heartMode) (heartMode == 0)
+#define TACHYCARDIA(heartMode) (heartMode == 7)
 
 #define NONE 0
 #define AQUA (1 << 0)
@@ -32,6 +32,7 @@ long interval = 1000;           // interval at which to blink (milliseconds)
 float part1 = 0;
 
 // This holds the pin numbers for the various length
+const int MODE_COUNT = 8;
 const int WIRE_COUNT = 8;
 const int LENGTHS[WIRE_COUNT] = {10, 10, 20, 20, 20, 30, 30, 30};
 const int COLORS[WIRE_COUNT] = {AQUA, ORANGE, AQUA, ORANGE, RED, AQUA, ORANGE, RED};
@@ -41,6 +42,8 @@ const int PINS[WIRE_COUNT] = {13, 12, 11, 10, 9, 8, 7, 6};
 const int OPTION_COUNT = 2 ^ WIRE_COUNT;
 int colors_for[OPTION_COUNT] = {0};
 int length_for[OPTION_COUNT] = {0};
+int mode_options[MODE_COUNT][OPTION_COUNT] = {0};
+int mode_options_count[MODE_COUNT] = {0};
 
 void setup(){
   setupHeartMonitor(HRMI_HR_ALG);
@@ -69,6 +72,32 @@ void prepareOutputOptions() {
     colors_for[option] = optionColors;
     length_for[option] = optionLength;
   }
+  
+  for (int mode = 0; mode < MODE_COUNT; mode++) {
+    int allowedColors = getAllowedColors(mode);
+    int maxLength = getMaxLength(mode);
+    int minLength = getMinLength(mode);
+    
+    for (int option = 0; option < OPTION_COUNT; option++) {
+      if (optionFitsColors(option, allowedColors) && optionFitsLengths(option, minLength, maxLength)) {
+        markModeOption(mode, option);
+      }
+    }
+  }
+}
+
+boolean optionFitsColors(int option, int allowedColors) {
+  return (colors_for[option] | allowedColors) == allowedColors;
+}
+
+boolean optionFitsLengths(int option, int minLength, int maxLength) {
+  int length = length_for[option];
+  return (length >= minLength && length <= maxLength);
+}
+
+void markModeOption(int mode, int option) {
+  mode_options[mode][mode_options_count[mode]] = option;
+  mode_options_count[mode] += 1;
 }
 
 void writeLEDfrequency(long interval){
@@ -94,23 +123,12 @@ void setupHeartMonitor(int type){
 
 void displayHeartRate(int heartRate) {
   int displayMode = getDisplayMode(heartRate);
-  int allowedColors = getAllowedColors(displayMode);
-  int maxLength = getMaxLength(displayMode);
-  int minLength = getMinLength(displayMode);
-  int option = selectOption(minLength, maxLength, allowedColors);
+  int option = selectOption(displayMode);
   activateLights(option);
 }
 
-int selectOption(int minLength, int maxLength, int allowedColors) {
-  while(true) {
-    int option = rand() % OPTION_COUNT;
-    if ((colors_for[option] | allowedColors) == allowedColors) {
-      int length = length_for[option];
-      if (length >= minLength && length <= maxLength) {
-        return option;
-      }
-    }
-  }
+int selectOption(int displayMode) {
+  return mode_options[displayMode][rand() % mode_options_count[displayMode]];
 }
 
 void activateLights(int option) {
@@ -121,12 +139,12 @@ void activateLights(int option) {
 
 int getDisplayMode(int heartRate) {
   if (heartRate < 60) {
-    return 1;
+    return 0;
   } else if (heartRate >= 120) {
-    return 8;
+    return 7;
   } else {
-    // 60-120 -> 2-7
-    return (heartRate / 10) - 4;
+    // 60-120 -> 1-6
+    return (heartRate / 10) - 5;
   }
 }
 
@@ -134,14 +152,14 @@ int getMinLength(int displayMode) {
   if (RESTING(displayMode) || TACHYCARDIA(displayMode)) {
     return 10;
   } else {
-    // translyate 4-7 -> 10-40
-    return (displayMode - 3) * 10;
+    // translate 3-6 -> 10-40
+    return (displayMode - 2) * 10;
   }
 }
 
 int getMaxLength(int displayMode) {
-  // displayMode is 1-8. Target length is 10-80 feet
-  return displayMode == 8 ? 80 : (displayMode * 10) + 10;
+  // displayMode is 0-7. Target length is 10-80 feet
+  return (displayMode * 10) + 10;
 }
 
 int getAllowedColors(int displayMode) {
@@ -149,7 +167,7 @@ int getAllowedColors(int displayMode) {
     return AQUA;
   } else if (RESTING(displayMode)) {
     return AQUA & ORANGE;
-  } else if ((displayMode < 6) || TACHYCARDIA(displayMode)) {
+  } else if ((displayMode < 5) || TACHYCARDIA(displayMode)) {
     return AQUA & ORANGE & RED;
   } else {
     return ORANGE & RED;
