@@ -22,15 +22,6 @@
 
 #define WIRE(option, index) (option & (1 << index))
 
-const int ledPin = 13; // LED connected to digital pin 13 
-// Variables will change:
-int ledState = LOW;             // ledState used to set the LED
-long previousMillis = 0;        // will store last time LED was updated
-// the follow variables is a long because the time, measured in miliseconds,
-// will quickly become a bigger number than can be stored in an int.
-long interval = 1000;           // interval at which to blink (milliseconds)
-float part1 = 0;
-
 // This holds the pin numbers for the various length
 const int MODE_COUNT = 8;
 const int WIRE_COUNT = 8;
@@ -48,7 +39,9 @@ int mode_options_count[MODE_COUNT] = {0};
 void setup(){
   setupHeartMonitor(HRMI_HR_ALG);
   Serial.begin(9600);
-  pinMode(ledPin,OUTPUT);
+  for (int wireIndex = 0; wireIndex < WIRE_COUNT; wireIndex++) {
+    pinMode(PINS[wireIndex], OUTPUT);
+  }
   prepareOutputOptions();
 }
 
@@ -117,21 +110,6 @@ boolean optionFitsLengths(int option, int minLength, int maxLength) {
 void markModeOption(int mode, int option) {
   mode_options[mode][mode_options_count[mode]] = option;
   mode_options_count[mode] += 1;
-}
-
-void writeLEDfrequency(long interval){
-  unsigned long currentMillis = millis();
-  if(currentMillis - previousMillis > interval) {
-    // save the last time you blinked the LED 
-    previousMillis = currentMillis;   
-    // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW)
-      ledState = HIGH;
-    else
-      ledState = LOW;
-    // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);
-  }  
 }
 
 void setupHeartMonitor(int type){
