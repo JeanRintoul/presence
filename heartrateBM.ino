@@ -11,17 +11,48 @@
 #define HRMI_I2C_ADDR      127
 #define HRMI_HR_ALG        1   // 1= average sample, 0 = raw sample
 
+const int ledPin = 13; // LED connected to digital pin 13 
+// Variables will change:
+int ledState = LOW;             // ledState used to set the LED
+long previousMillis = 0;        // will store last time LED was updated
+// the follow variables is a long because the time, measured in miliseconds,
+// will quickly become a bigger number than can be stored in an int.
+long interval = 1000;           // interval at which to blink (milliseconds)
+float part1 = 0;
+
 void setup(){
   setupHeartMonitor(HRMI_HR_ALG);
   Serial.begin(9600);
+  pinMode(ledPin,OUTPUT);
 }
 
 void loop(){
 
   int heartRate = getHeartRate();
   Serial.println(heartRate);
+  //delay(1000); //just here to slow down the checking to once a second
+  delay(20);
+  // This is the desired LED blink interval: 
+  interval = 60000/heartRate;
+  writeLEDfrequency(interval);
+  // Now, we need some LCD screen output code... 
+  // It can be updated, not that often... once a second?
 
-  delay(1000); //just here to slow down the checking to once a second
+}
+
+void writeLEDfrequency(long interval){
+  unsigned long currentMillis = millis();
+  if(currentMillis - previousMillis > interval) {
+    // save the last time you blinked the LED 
+    previousMillis = currentMillis;   
+    // if the LED is off turn it on and vice-versa:
+    if (ledState == LOW)
+      ledState = HIGH;
+    else
+      ledState = LOW;
+    // set the LED with the ledState of the variable:
+    digitalWrite(ledPin, ledState);
+  }  
 }
 
 void setupHeartMonitor(int type){
