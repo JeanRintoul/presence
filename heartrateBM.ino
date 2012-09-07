@@ -27,13 +27,13 @@ const int MIN_LENGTH = 20;
 
 // This holds the pin numbers for the various length
 const int MODE_COUNT = 8;
-const int WIRE_COUNT = 8;
-const int LENGTHS[WIRE_COUNT] = {10, 10, 20, 20, 20, 30, 30, 30};
-const int COLORS[WIRE_COUNT] = {AQUA, ORANGE, AQUA, ORANGE, RED, AQUA, ORANGE, RED};
-const int PINS[WIRE_COUNT] = {13, 12, 11, 10, 9, 8, 7, 6};
+const int WIRE_COUNT = 5;
+const int LENGTHS[WIRE_COUNT] = {20,   20,   10,     20,  20};
+const int COLORS[WIRE_COUNT] =  {AQUA, ORANGE, ORANGE, RED, ORANGE};
+const int PINS[WIRE_COUNT] =    {4,    5,    7,      9,   13};
 
 // These are populate by the prepareOutputOptions, based on the settings above
-const int OPTION_COUNT = 2 ^ WIRE_COUNT;
+const int OPTION_COUNT = 32; // 2 ^ WIRE_COUNT
 int colors_for[OPTION_COUNT] = {0};
 int length_for[OPTION_COUNT] = {0};
 int mode_options[MODE_COUNT][OPTION_COUNT] = {0};
