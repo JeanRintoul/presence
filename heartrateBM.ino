@@ -67,12 +67,12 @@ void prepareOutputOptions() {
     colors_for[option] = optionColors;
     length_for[option] = optionLength;
   }
-  
+
   for (int mode = 0; mode < MODE_COUNT; mode++) {
     int allowedColors = getAllowedColors(mode);
     int maxLength = getMaxLength(mode);
     int minLength = getMinLength(mode);
-    
+
     for (int option = 0; option < OPTION_COUNT; option++) {
       if (optionFitsColors(option, allowedColors) && optionFitsLengths(option, minLength, maxLength)) {
         markModeOption(mode, option);
@@ -168,7 +168,7 @@ int getHeartRate(){
   byte i2cRspArray[3]; // I2C response array
   i2cRspArray[2] = 0;
 
-  writeRegister(HRMI_I2C_ADDR,  0x47, 0x1); // Request a set of heart rate values 
+  writeRegister(HRMI_I2C_ADDR,  0x47, 0x1); // Request a set of heart rate values
 
   if (hrmiGetData(127, 3, i2cRspArray)) {
     return i2cRspArray[2];
@@ -180,7 +180,7 @@ int getHeartRate(){
 
 void writeRegister(int deviceAddress, byte address, byte val) {
   //I2C command to send data to a specific address on the device
-  Wire.beginTransmission(deviceAddress); // start transmission to device 
+  Wire.beginTransmission(deviceAddress); // start transmission to device
   Wire.write(address);       // send register address
   Wire.write(val);         // send value to write
   Wire.endTransmission();     // end transmission
