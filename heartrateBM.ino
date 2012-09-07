@@ -22,6 +22,9 @@
 
 #define WIRE(option, index) (option & (1 << index))
 
+// This number is driver-dependent and in feet. Ours can go as low as 10 but we'll say 20 for safety.
+const int MIN_LENGTH = 20;
+
 // This holds the pin numbers for the various length
 const int MODE_COUNT = 8;
 const int WIRE_COUNT = 8;
@@ -41,6 +44,12 @@ void setup(){
   Serial.begin(9600);
   for (int wireIndex = 0; wireIndex < WIRE_COUNT; wireIndex++) {
     pinMode(PINS[wireIndex], OUTPUT);
+  }
+  for (int wireIndex = 0; wireIndex < WIRE_COUNT; wireIndex++) {
+    if (LENGTHS[wireIndex] >= MIN_LENGTH) {
+      digitalWrite(PINS[wireIndex], HIGH);
+      break;
+    }
   }
   prepareOutputOptions();
 }
@@ -74,7 +83,7 @@ void prepareOutputOptions() {
 
 int getMinLength(int displayMode) {
   if (RESTING(displayMode) || TACHYCARDIA(displayMode)) {
-    return 10;
+    return MIN_LENGTH;
   } else {
     // translate 3-6 -> 10-40
     return (displayMode - 2) * 10;
