@@ -79,6 +79,16 @@ void prepareOutputOptions() {
       }
     }
   }
+
+//  for (int mode = 0; mode < MODE_COUNT; mode++) {
+//    Serial.println(mode);
+//    Serial.println("---------------");
+//    Serial.println(mode_options_count[mode]);
+//    for (int optionIndex = 0; optionIndex < mode_options_count[mode]; optionIndex++) {
+//      Serial.println(mode_options[mode][optionIndex]);
+//    }
+//    Serial.println("================");
+//  }
 }
 
 int getMinLength(int displayMode) {
@@ -137,7 +147,9 @@ void loop(){
 
 void displayHeartRate(int heartRate) {
   int displayMode = getDisplayMode(heartRate);
+//  Serial.println(displayMode);
   int option = selectOption(displayMode);
+//  Serial.println(option);
   activateLights(option);
 }
 
