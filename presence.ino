@@ -41,32 +41,27 @@ void loop(){
 
   int heartRate = getHeartRate();
   Serial.println(heartRate);
-  //delay(1000); //just here to slow down the checking to once a second
-  delay(20);
+
   // This is the desired LED blink interval: 
   interval = 60000/heartRate;
   // write to pin 13, 4.83 v coming out of there in time with pulse. 
-  writeLEDfrequency(interval);
+  writeLEDfrequency();
   
   // Now, we need some LCD screen output code... 
   lcd.setCursor(0, 0);
   // print the number of seconds since reset:
   lcd.print(heartRate);
+  delay(interval);
 }
 
-void writeLEDfrequency(long interval){
-  unsigned long currentMillis = millis();
-  if(currentMillis - previousMillis > interval) {
-    // save the last time you blinked the LED 
-    previousMillis = currentMillis;   
-    // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW)
-      ledState = HIGH;
-    else
-      ledState = LOW;
-    // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);
-  }
+void writeLEDfrequency(){
+  // if the LED is off turn it on and vice-versa:
+  if (ledState == LOW)
+    ledState = HIGH;
+  else
+    ledState = LOW;
+  // set the LED with the ledState of the variable:
+  digitalWrite(ledPin, ledState);
 }
 
 void setupHeartMonitor(int type){
