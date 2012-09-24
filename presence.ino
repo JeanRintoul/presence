@@ -22,7 +22,6 @@ int ledState = LOW;             // ledState used to set the LED
 long previousMillis = 0;        // will store last time LED was updated
 // the follow variables is a long because the time, measured in miliseconds,
 // will quickly become a bigger number than can be stored in an int.
-long interval = 1000;           // interval at which to blink (milliseconds)
 float part1 = 0;
 
 void setup(){
@@ -37,24 +36,29 @@ void setup(){
   lcd.print("beats per minute!");  
 }
 
+int previousRate = 0;
 void loop(){
+  // write to pin 13, 4.83 v coming out of there in time with pulse.
+  switchLED();
 
   int heartRate = getHeartRate();
-  Serial.println(heartRate);
+  if (heartRate != previousRate) {
+    previousRate = heartRate;
 
-  // This is the desired LED blink interval: 
-  interval = 60000/heartRate;
-  // write to pin 13, 4.83 v coming out of there in time with pulse. 
-  writeLEDfrequency();
-  
-  // Now, we need some LCD screen output code... 
-  lcd.setCursor(0, 0);
-  // print the number of seconds since reset:
-  lcd.print(heartRate);
+    Serial.print('\n');
+    Serial.print(heartRate);
+    // Now, we need some LCD screen output code...
+    lcd.setCursor(0, 0);
+    // print the number of seconds since reset:
+    lcd.print(heartRate);
+  } else {
+    Serial.print('.');
+  }
+  int interval = 60000/heartRate;
   delay(interval);
 }
 
-void writeLEDfrequency(){
+void switchLED(){
   // if the LED is off turn it on and vice-versa:
   if (ledState == LOW)
     ledState = HIGH;
