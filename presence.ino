@@ -55,6 +55,8 @@ void loop(){
     Serial.print('.');
   }
   int interval = 60000/heartRate;
+  if (interval == 0)
+    interval = 50;
   delay(interval);
 }
 
