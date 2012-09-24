@@ -10,6 +10,11 @@
 
 #define HRMI_I2C_ADDR      127
 #define HRMI_HR_ALG        1   // 1= average sample, 0 = raw sample
+#include <LiquidCrystal.h>
+
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
 
 const int ledPin = 13; // LED connected to digital pin 13 
 // Variables will change:
@@ -24,6 +29,12 @@ void setup(){
   setupHeartMonitor(HRMI_HR_ALG);
   Serial.begin(9600);
   pinMode(ledPin,OUTPUT);
+  
+  // set up the LCD's number of columns and rows: 
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 1);
+  // Print a message to the LCD.
+  lcd.print("beats per minute!");  
 }
 
 void loop(){
@@ -34,10 +45,13 @@ void loop(){
   delay(20);
   // This is the desired LED blink interval: 
   interval = 60000/heartRate;
+  // write to pin 13, 4.83 v coming out of there in time with pulse. 
   writeLEDfrequency(interval);
+  
   // Now, we need some LCD screen output code... 
-  // It can be updated, not that often... once a second?
-
+  lcd.setCursor(0, 0);
+  // print the number of seconds since reset:
+  lcd.print(heartRate);
 }
 
 void writeLEDfrequency(long interval){
@@ -52,7 +66,7 @@ void writeLEDfrequency(long interval){
       ledState = LOW;
     // set the LED with the ledState of the variable:
     digitalWrite(ledPin, ledState);
-  }  
+  }
 }
 
 void setupHeartMonitor(int type){
