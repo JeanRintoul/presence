@@ -19,7 +19,7 @@ The hardware this drives is:
 The specific configuration of pins and el-wire characteristics is declared at the top of the file. For that see the comment "This holds the pin numbers for the various length".
 
 
-Note: alternate version with LCD screen was also made in parallel but was woefully undocumented(yes, I know). However, a youtube video was made! The reason an LCD screen with the heart rate beat per minute number(BPM) was used was because it was hard to see whether a person's heart rate was increasing or decreasing by noticing the synced blinking lights. Also, the Derby integration went with my outfit. 
+Note: alternate version with LCD screen was also made in parallel but was woefully undocumented(yes, I know). However, a youtube video was made!(www.youtube.com/embed/NSAjIEhVMR8) The reason an LCD screen with the heart rate beat per minute number(BPM) was used was because it was hard to see whether a person's heart rate was increasing or decreasing by noticing the synced blinking lights. Also, the Derby integration went with my outfit. 
 
 <iframe width="854" height="510" src="//www.youtube.com/embed/NSAjIEhVMR8" frameborder="0" allowfullscreen></iframe>
 
